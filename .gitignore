@@ -3,3 +3,15 @@
 
 *.img
 share/
+
+# Local/editor state
+.env
+.env.*
+!.env.example
+*.swp
+*.swo
+*~
+
+# Python HTTP server/cache noise
+__pycache__/
+*.py[cod]

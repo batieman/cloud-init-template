@@ -1,2 +1,2 @@
-instance-id: someid/somehostname
-
+instance-id: cloud-init-template
+local-hostname: cloud-init-template

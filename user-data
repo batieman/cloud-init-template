@@ -1,4 +1,7 @@
 #cloud-config
+
+# Local demo credential. Replace this before using the template anywhere other
+# than an isolated development VM.
 password: password
 chpasswd:
   expire: False
