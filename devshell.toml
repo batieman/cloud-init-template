@@ -1,0 +1,18 @@
+# https://numtide.github.io/devshell
+[[commands]]
+package = "cloud-init"
+
+[[commands]]
+package = "python3"
+
+[[commands]]
+package = "qemu"
+
+[[commands]]
+package = "just"
+
+[serviceGroups.http]
+description = "Local HTTP server for cloud-init"
+
+[serviceGroups.http.services.server]
+command = "python3 -m http.server --directory ."

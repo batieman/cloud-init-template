@@ -1,0 +1,13 @@
+#cloud-config
+password: password
+chpasswd:
+  expire: False
+
+packages:
+  - xubuntu-desktop-minimal
+
+bootcmd:
+  - [mkdir, -p, /mnt/share]
+
+mounts:
+  - [share0, /mnt/share, 9p, "trans=virtio,version=9p2000.L", "0", "0"]
