@@ -1,10 +1,10 @@
-#cloud-config
-
-# Local demo credential. Replace this before using the template anywhere other
-# than an isolated development VM.
 password: password
 chpasswd:
-  expire: False
-
+  expire: false
+ssh_authorized_keys:
+  - placeholder
 packages:
   - openssh-server
+runcmd:
+  - systemctl enable ssh
+  - systemctl start sshd

@@ -3,13 +3,10 @@
 package = "cloud-init"
 
 [[commands]]
-package = "python3"
-
-[[commands]]
-package = "qemu"
-
-[[commands]]
 package = "just"
 
 [[commands]]
 package = "cdrkit"
+
+[[commands]]
+package = "yq"

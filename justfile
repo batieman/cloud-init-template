@@ -2,6 +2,8 @@ image := "noble-server-cloudimg-amd64.img"
 base := "machine"
 disk := "disk.qcow2"
 cidata := "cidata.iso"
+ssh-key-file := base / "id_ed25519"
+ssh-pub-key-file := ssh-key-file+".pub"
 
 default:
     @just --list
@@ -21,7 +23,20 @@ disk: pull
       {{base}}/{{disk}} \
       15G
 
-pack-config:
+keygen:
+    mkdir -p {{base}}
+    test -f {{ssh-key-file}} || ssh-keygen \
+      -q \
+      -t ed25519 \
+      -N "" \
+      -f {{ssh-key-file}}
+
+inject-key: keygen
+    yq -yi '.ssh_authorized_keys = ["{{trim(read(ssh-pub-key-file))}}"]' user-data
+    sed -i '1i#cloud-config' user-data
+
+pack-config: inject-key validate
+    mkdir -p {{base}}
     test -f {{base}}/{{cidata}} || genisoimage \
       -output {{base}}/{{cidata}} \
       -V cidata \
@@ -29,18 +44,15 @@ pack-config:
       -J \
       user-data meta-data
 
-run: pack-config disk
-    qemu-system-x86_64 \
-      -machine accel=kvm:tcg \
-      -m 512 \
-      -nographic \
-      -drive file={{base}}/{{disk}},format=qcow2 \
-      -drive file={{base}}/{{cidata}},media=cdrom,readonly=on \
-      -nic user
-
-# Cannot be run as first boot
-quickemu: pack-config disk
+quickemu: disk pack-config
     quickemu --vm machine.conf
+
+ssh:
+    ssh \
+      -i {{ssh-key-file}} \
+      -o "StrictHostKeyChecking=no" \
+      ubuntu@localhost \
+      -p 22220
 
 purge:
     rm -rf {{base}} {{image}}
