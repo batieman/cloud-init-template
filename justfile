@@ -1,39 +1,49 @@
 image := "noble-server-cloudimg-amd64.img"
+base := "machine"
+disk := "disk.qcow2"
+cidata := "cidata.iso"
 
 default:
     @just --list
 
 pull:
     test -f {{image}} || wcurl https://cloud-images.ubuntu.com/noble/current/{{image}}
-    qemu-img resize {{image}} 20G
-
-setup:
-    mkdir -p share
 
 validate:
     cloud-init schema --config-file user-data
 
-run: setup pull
-    qemu-system-x86_64                                                        \
-      -net nic                                                                \
-      -net user                                                               \
-      -machine accel=kvm:tcg                                                  \
-      -m 512                                                                  \
-      -nographic                                                              \
-      -hda {{image}}                                                          \
-      -virtfs local,path=share,mount_tag=share0,security_model=none,id=share0 \
-      -smbios type=1,serial=ds='nocloud;s=http://10.0.2.2:8000/'
+disk: pull
+    mkdir -p {{base}}
+    test -f {{base}}/{{disk}} || qemu-img create \
+      -b ../{{image}} \
+      -f qcow2 \
+      -F qcow2 \
+      {{base}}/{{disk}} \
+      15G
 
-run-gui: setup pull
-    qemu-system-x86_64                                                        \
-      -net nic                                                                \
-      -net user                                                               \
-      -machine accel=kvm:tcg                                                  \
-      -m 4096                                                                 \
-      -display gtk                                                            \
-      -hda {{image}}                                                          \
-      -virtfs local,path=share,mount_tag=share0,security_model=none,id=share0 \
-      -smbios type=1,serial=ds='nocloud;s=http://10.0.2.2:8000/'
+pack-config:
+    test -f {{base}}/{{cidata}} || genisoimage \
+      -output {{base}}/{{cidata}} \
+      -V cidata \
+      -r \
+      -J \
+      user-data meta-data
+
+run: pack-config disk
+    qemu-system-x86_64 \
+      -machine accel=kvm:tcg \
+      -m 512 \
+      -nographic \
+      -drive file={{base}}/{{disk}},format=qcow2 \
+      -drive file={{base}}/{{cidata}},media=cdrom,readonly=on \
+      -nic user
+
+# Cannot be run as first boot
+quickemu: pack-config disk
+    quickemu --vm machine.conf
+
+purge:
+    rm -rf {{base}} {{image}}
 
 clean:
-    rm -f {{image}}
+    rm -rf {{base}}

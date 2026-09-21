@@ -12,6 +12,4 @@ share/
 *.swo
 *~
 
-# Python HTTP server/cache noise
-__pycache__/
-*.py[cod]
+machine/

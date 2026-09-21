@@ -11,8 +11,5 @@ package = "qemu"
 [[commands]]
 package = "just"
 
-[serviceGroups.http]
-description = "Local HTTP server for cloud-init"
-
-[serviceGroups.http.services.server]
-command = "python3 -m http.server --directory ."
+[[commands]]
+package = "cdrkit"
